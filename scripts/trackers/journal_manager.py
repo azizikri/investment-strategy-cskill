@@ -23,7 +23,6 @@ TradeSentiment = Literal["confident", "neutral", "uncertain", "fearful", "greedy
 
 
 class TradeEntry:
-    """Represents a single trade journal entry."""
 
     def __init__(
         self,
@@ -31,7 +30,7 @@ class TradeEntry:
         action: TradeAction,
         quantity: float,
         price: float,
-        platform: str,
+        category: str = "id_stocks",
         currency: str = "IDR",
         thesis: str = "",
         notes: str = "",
@@ -48,7 +47,7 @@ class TradeEntry:
         self.action = action.upper()
         self.quantity = float(quantity)
         self.price = float(price)
-        self.platform = platform.lower().strip()
+        self.category = category.lower().strip()
         self.currency = currency.upper().strip()
         self.thesis = thesis
         self.notes = notes
@@ -75,11 +74,10 @@ class TradeEntry:
         self.fees = float(fees)
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert entry to dictionary."""
         return {
             "id": self.id,
             "timestamp": self.timestamp,
-            "platform": self.platform,
+            "category": self.category,
             "ticker": self.ticker,
             "action": self.action,
             "quantity": self.quantity,
@@ -97,13 +95,25 @@ class TradeEntry:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "TradeEntry":
-        """Create entry from dictionary."""
+        category = data.get("category")
+        if not category:
+            old_platform = data.get("platform", "")
+            currency = data.get("currency", "IDR")
+            if old_platform == "bibit" or old_platform == "money_market":
+                category = "emergency_fund"
+            elif old_platform == "gotrade" or currency == "USD":
+                category = "us_stocks"
+            elif old_platform == "tokocrypto":
+                category = "crypto"
+            else:
+                category = "id_stocks"
+
         entry = cls(
             ticker=data["ticker"],
             action=data["action"],
             quantity=data["quantity"],
             price=data["price"],
-            platform=data["platform"],
+            category=category,
             currency=data.get("currency", "IDR"),
             thesis=data.get("thesis", ""),
             notes=data.get("notes", ""),

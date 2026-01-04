@@ -1,6 +1,6 @@
 ---
 name: investment-strategy-cskill
-description: Investment strategy execution assistant for Indonesian investors. Provides daily portfolio check-in with live prices from Yahoo Finance and CoinGecko, weekly performance review versus IHSG and S&P 500 benchmarks, and monthly strategy sessions with phase assessment. Implements Wall Street workflows including Kelly Criterion position sizing, Sharpe and Sortino ratio calculations, maximum drawdown monitoring, and threshold-based rebalancing. Tracks Emergency Fund progress for Phase 1 (Foundation Building) and Phase 2 (Wealth Accumulation) transitions. Manages structured JSON trade journal, generates payday execution plans for Bibit, Stockbit, Gotrade, and Tokocrypto platforms. References comprehensive investment framework documentation in ./plans/ for all calculations and recommendations.
+description: Investment strategy execution assistant for Indonesian investors. Provides daily portfolio check-in with live prices from Yahoo Finance and CoinGecko, weekly performance review versus IHSG and S&P 500 benchmarks, and monthly strategy sessions with phase assessment. Implements Wall Street workflows including Kelly Criterion position sizing, Sharpe and Sortino ratio calculations, maximum drawdown monitoring, and threshold-based rebalancing. Tracks Emergency Fund progress for Phase 1 (Foundation Building) and Phase 2 (Wealth Accumulation) transitions. Manages structured JSON trade journal, generates payday execution plans. References comprehensive investment framework documentation in ./plans/ for all calculations and recommendations.
 activationKeywords:
   - "daily check"
   - "morning routine"
@@ -30,6 +30,98 @@ activationPatterns:
 # 📈 Investment Strategy Execution Assistant
 
 Welcome to the **Investment Strategy Execution Assistant** (`investment-strategy-cskill`). This skill is designed to operationalize your investment framework into a disciplined, habitual execution workflow. It bridges the gap between your comprehensive investment documentation and your daily, weekly, and monthly actions.
+
+---
+
+## ⚠️ EXECUTION GUARDRAILS (MANDATORY)
+
+**CRITICAL**: This skill MUST use the Python scripts in `./scripts/` for ALL workflows. DO NOT manually recreate logic or generate outputs without running the actual scripts.
+
+### Script Execution Requirements
+
+| Workflow | Required Command | Script Path |
+|----------|------------------|-------------|
+| Daily Check-In | `uv run python scripts/daily_checkin.py` | `scripts/daily_checkin.py` |
+| Weekly Review | `uv run python scripts/weekly_review.py` | `scripts/weekly_review.py` |
+| Monthly Strategy | `uv run python scripts/monthly_strategy.py` | `scripts/monthly_strategy.py` |
+| Initialize Portfolio | `uv run python scripts/init_portfolio.py` | `scripts/init_portfolio.py` |
+
+### Folder Hierarchy (ENFORCED)
+
+```
+./scripts/          # EXECUTION LAYER - Run these scripts
+├── daily_checkin.py       # Entry: uv run python scripts/daily_checkin.py
+├── weekly_review.py       # Entry: uv run python scripts/weekly_review.py  
+├── monthly_strategy.py    # Entry: uv run python scripts/monthly_strategy.py
+├── init_portfolio.py      # Entry: uv run python scripts/init_portfolio.py
+├── calculators/           # Risk metrics, Kelly, rebalancing
+├── data_fetchers/         # Yahoo Finance, CoinGecko, FX APIs
+├── trackers/              # Portfolio, Journal, Emergency Fund state
+└── utils/                 # Formatters, validators, CSV handlers
+
+./plans/            # KNOWLEDGE LAYER - Reference for methodology
+├── 00-overview.md         # Investment strategy overview
+├── 01-investment-philosophy.md
+├── 02-risk-management.md
+├── 03-due-diligence.md
+├── 04-portfolio-construction.md
+├── 05-trading-workflow.md
+├── 06-performance-metrics.md
+├── 07-governance-compliance.md
+├── 08-life-stage-planning.md
+├── 09-emergency-fund.md
+├── 10-tools-templates.md
+└── 11-glossary.md
+
+./references/       # REFERENCE LAYER - Implementation guides
+├── api-guide.md           # API usage documentation
+├── customization.md       # How to customize the skill
+├── methodology.md         # Detailed methodology explanations
+└── workflow-guide.md      # Step-by-step workflow guides
+
+./data/             # DATA LAYER - User portfolio data (DO NOT COMMIT)
+├── portfolio.json         # Master holdings record
+├── journal.json           # Trade log with thesis/sentiment
+└── ef_progress.json       # Emergency fund tracking
+```
+
+### Execution Rules (NON-NEGOTIABLE)
+
+1. **ALWAYS run scripts via `uv run python scripts/<script>.py`** - Never manually activate venv
+2. **NEVER generate mock/synthetic output** - Script output is authoritative
+3. **If script fails**: Fix the script, don't bypass it
+4. **For calculations**: Use `scripts/calculators/` modules - don't reimplement formulas
+5. **For data**: Read from `./data/*.json` via `scripts/trackers/` - don't hardcode values
+6. **For methodology questions**: Reference `./plans/` documentation
+7. **For customization**: Reference `./references/customization.md`
+
+### Command-to-Script Mapping
+
+| User Command | Action |
+|--------------|--------|
+| `daily check`, `morning routine`, `portfolio check` | Run `scripts/daily_checkin.py` |
+| `weekly review`, `week review` | Run `scripts/weekly_review.py` |
+| `monthly strategy`, `month review` | Run `scripts/monthly_strategy.py` |
+| `init portfolio`, `initialize` | Run `scripts/init_portfolio.py` |
+| `size position <ticker>` | Use `scripts/calculators/position_sizer.py` |
+| `portfolio risk` | Use `scripts/calculators/risk_metrics.py` |
+| `rebalance check` | Use `scripts/calculators/rebalancer.py` |
+| `phase check` | Use `scripts/calculators/phase_detector.py` |
+| `add trade`, `log trade` | Use `scripts/trackers/journal_manager.py` |
+
+### What to Reference (Not Execute)
+
+For explaining **why** (theory, methodology):
+- `plans/01-investment-philosophy.md` - Investment frameworks
+- `plans/02-risk-management.md` - Risk management theory
+- `plans/06-performance-metrics.md` - Metric definitions
+
+For explaining **how** (implementation, customization):
+- `references/workflow-guide.md` - Step-by-step guides
+- `references/customization.md` - How to customize targets
+- `references/api-guide.md` - API documentation
+
+---
 
 ## 🌟 Core Mission
 
@@ -94,7 +186,7 @@ The daily check-in provides a high-level snapshot of your portfolio's health usi
 **Trigger Phrases:** `daily check`, `morning routine`, `portfolio check`
 
 **Output Components:**
-- **Portfolio Snapshot:** Live valuations across platforms (Bibit, Stockbit, Gotrade, Tokocrypto).
+- **Portfolio Snapshot:** Live valuations across asset categories (Emergency Fund, ID Stocks, US Stocks, Crypto).
 - **Allocation Check:** Current vs. Target allocation for Phase 1/2.
 - **Emergency Fund Tracker:** Progress toward your target (3-6-12 months).
 - **Today's Focus:** Actionable advice based on the day's market context.
@@ -107,16 +199,16 @@ The daily check-in provides a high-level snapshot of your portfolio's health usi
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 💰 PORTFOLIO SNAPSHOT (Live Prices)
-┌─────────────┬──────────────────────┬──────────┬────────────────┬─────────┐
-│ Platform    │ Asset                │ Qty      │ Value (IDR)    │ 24h Δ   │
-├─────────────┼──────────────────────┼──────────┼────────────────┼─────────┤
-│ Bibit       │ RDPU-Sucorinvest     │ 12.5M    │ 12,512,500     │ +0.02%  │
-│ Stockbit    │ BBCA.JK              │ 10 lot   │ 9,650,000      │ -0.5%   │
-│ Gotrade     │ NVDA                 │ 0.5 shr  │ 1,180,000      │ +1.8%   │
-│ Tokocrypto  │ BTC                  │ 0.001    │ 1,650,000      │ +3.2%   │
-├─────────────┼──────────────────────┼──────────┼────────────────┼─────────┤
-│ TOTAL       │                      │          │ 24,992,500     │ +0.9%   │
-└─────────────┴──────────────────────┴──────────┴────────────────┴─────────┘
+┌─────────────────┬──────────────────────┬──────────┬────────────────┬─────────┐
+│ Category        │ Asset                │ Qty      │ Value (IDR)    │ 24h Δ   │
+├─────────────────┼──────────────────────┼──────────┼────────────────┼─────────┤
+│ Emergency Fund  │ RDPU-Sucorinvest     │ 12.5M    │ 12,512,500     │ +0.02%  │
+│ ID Stocks       │ BBCA.JK              │ 10 lot   │ 9,650,000      │ -0.5%   │
+│ US Stocks       │ NVDA                 │ 0.5 shr  │ 1,180,000      │ +1.8%   │
+│ Crypto          │ BTC                  │ 0.001    │ 1,650,000      │ +3.2%   │
+├─────────────────┼──────────────────────┼──────────┼────────────────┼─────────┤
+│ TOTAL           │                      │          │ 24,992,500     │ +0.9%   │
+└─────────────────┴──────────────────────┴──────────┴────────────────┴─────────┘
 
 📊 ALLOCATION (Current vs Target - Phase 1)
 ┌─────────────────┬─────────┬─────────┬──────────┐
@@ -173,7 +265,7 @@ The most comprehensive mode. It evaluates your overall progress, determines your
 **Comprehensive Analysis:**
 - **Full Performance Report**: CAGR, Maximum Drawdown, Sharpe/Sortino ratios (Ref: `plans/06-performance-metrics.md`).
 - **Phase Assessment**: Automatic determination if EF covers >= 6 months of expenses (Phase 1 -> Phase 2).
-- **Payday Execution Plan**: Exact amounts to invest in each platform (Bibit, Stockbit, etc.) aligned with `plans/09-emergency-fund.md`.
+- **Payday Execution Plan**: Exact amounts to invest in each category aligned with `plans/09-emergency-fund.md`.
 - **IPS Compliance**: Verification against your Investment Policy Statement (Ref: `plans/07-governance-compliance.md`).
 - **Tax Optimization**: Reviewing potential tax implications for long-term vs. short-term capital gains.
 - **Mean Reversion Check**: Identifying assets that are 3 standard deviations below their 200-day mean for potential contrarian entries.
@@ -181,8 +273,8 @@ The most comprehensive mode. It evaluates your overall progress, determines your
 #### Payday Execution Example:
 1.  **Incoming Savings**: IDR 10,000,000
 2.  **Allocation (Phase 1)**: 
-    - 80% to Emergency Fund (Bibit RDPU): IDR 8,000,000
-    - 20% to Investments (Stockbit/Gotrade): IDR 2,000,000
+    - 80% to Emergency Fund: IDR 8,000,000
+    - 20% to Investments: IDR 2,000,000
 3.  **Specific Orders**:
     - Buy BBCA.JK: 1 lot @ 9500
     - Buy VOO: 0.1 shares @ $500
@@ -223,7 +315,7 @@ The skill monitors your positions and flags those that have dropped below their 
 ### Diversification Rules
 - **Asset Class**: No more than 30% in any single sector (e.g., Banking, Tech).
 - **Geography**: Maintaining a balance between Indonesian (IDX) and Global (US) markets.
-- **Counterparty**: Spreading assets across multiple brokers (Stockbit, Gotrade, Tokocrypto) to manage platform risk.
+- **Category**: Spreading assets across categories (Emergency Fund, ID Stocks, US Stocks, Crypto) to manage risk.
 
 ---
 
@@ -309,7 +401,7 @@ The skill supports "Profiles" that you can switch between as your life circumsta
 
 The core of Phase 1. Without a solid foundation, your investment house will collapse during the first storm.
 - **Target**: 6-12 months of living expenses.
-- **Storage**: Highly liquid, low-risk assets (Bibit RDPU / Money Market Funds).
+- **Storage**: Highly liquid, low-risk assets (Money Market Funds).
 - **Progress Tracking**: Automatic calculation of "Months Covered" based on your input of monthly expenses and current EF balance.
 - **The Rule of 80/20**: In Phase 1, 80% of every new Rupiah goes to the EF until the target is met. Only 20% is allowed for "speculative" growth investments.
 
@@ -326,12 +418,10 @@ Stores the truth about your holdings. It is the master record for your current n
   "positions": [
     {
       "id": "POS-001",
+      "category": "id_stocks",
       "ticker": "BBCA.JK",
-      "platform": "stockbit",
       "quantity": 10,
       "avg_price": 9500,
-      "type": "stock",
-      "is_emergency_fund": false,
       "currency": "IDR",
       "purchase_date": "2025-01-01"
     }
@@ -352,6 +442,7 @@ Stores the wisdom of your past self. This is your most valuable asset for long-t
   "trades": [
     {
       "id": "TRD-001",
+      "category": "us_stocks",
       "ticker": "NVDA",
       "action": "BUY",
       "thesis": "AI narrative remains strong, Q3 beat expected based on data center demand",

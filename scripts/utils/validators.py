@@ -12,8 +12,7 @@ __all__ = [
     "validate_quantity",
     "validate_price",
     "validate_date",
-    "validate_platform",
-    "validate_position_type",
+    "validate_category",
     "validate_percentage",
     "ValidationError",
 ]
@@ -25,9 +24,8 @@ class ValidationError(ValueError):
     pass
 
 
-VALID_PLATFORMS = frozenset({"bibit", "stockbit", "gotrade", "tokocrypto", "other"})
+VALID_CATEGORIES = frozenset({"emergency_fund", "id_stocks", "us_stocks", "crypto"})
 VALID_CURRENCIES = frozenset({"IDR", "USD"})
-VALID_POSITION_TYPES = frozenset({"stock", "crypto", "money_market", "etf", "bond", "other"})
 
 TICKER_PATTERN = re.compile(r"^[A-Z0-9][\w\-.]{0,19}$", re.IGNORECASE)
 
@@ -128,34 +126,19 @@ def validate_date(date_input: Any) -> datetime:
     raise ValidationError(f"Could not parse date: {date_str}. Use YYYY-MM-DD format.")
 
 
-def validate_platform(platform: Any) -> str:
-    """Validate and normalize platform name."""
-    if not platform or not isinstance(platform, str):
-        raise ValidationError("Platform must be a non-empty string")
+def validate_category(category: Any) -> str:
+    """Validate and normalize asset category."""
+    if not category or not isinstance(category, str):
+        raise ValidationError("Category must be a non-empty string")
 
-    platform = platform.strip().lower()
+    category = category.strip().lower()
 
-    if platform not in VALID_PLATFORMS:
+    if category not in VALID_CATEGORIES:
         raise ValidationError(
-            f"Invalid platform: {platform}. Valid options: {', '.join(sorted(VALID_PLATFORMS))}"
+            f"Invalid category: {category}. Valid options: {', '.join(sorted(VALID_CATEGORIES))}"
         )
 
-    return platform
-
-
-def validate_position_type(position_type: Any) -> str:
-    """Validate and normalize position type."""
-    if not position_type or not isinstance(position_type, str):
-        raise ValidationError("Position type must be a non-empty string")
-
-    pos_type = position_type.strip().lower()
-
-    if pos_type not in VALID_POSITION_TYPES:
-        raise ValidationError(
-            f"Invalid position type: {pos_type}. Valid options: {', '.join(sorted(VALID_POSITION_TYPES))}"
-        )
-
-    return pos_type
+    return category
 
 
 def validate_percentage(value: Any, min_val: float = 0.0, max_val: float = 100.0) -> float:

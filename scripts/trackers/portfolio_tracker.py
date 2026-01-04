@@ -24,28 +24,28 @@ class Position:
     def __init__(
         self,
         ticker: str,
-        platform: str,
         quantity: float,
         avg_price: float,
+        category: str = "id_stocks",
         currency: str = "IDR",
-        position_type: str = "stock",
-        is_emergency_fund: bool = False,
         name: str | None = None,
         purchase_date: str | None = None,
         position_id: str | None = None,
     ):
         self.id = position_id or f"POS-{uuid.uuid4().hex[:8].upper()}"
         self.ticker = ticker.upper().strip()
-        self.platform = platform.lower().strip()
         self.quantity = float(quantity)
         self.avg_price = float(avg_price)
+        self.category = category.lower().strip()
         self.currency = currency.upper().strip()
-        self.type = position_type.lower().strip()
-        self.is_emergency_fund = bool(is_emergency_fund)
         self.name = name or ticker
         self.purchase_date = purchase_date or datetime.now().strftime("%Y-%m-%d")
         self.last_price: float | None = None
         self.last_updated: str | None = None
+
+    @property
+    def is_emergency_fund(self) -> bool:
+        return self.category == "emergency_fund"
 
     @property
     def cost_basis(self) -> float:
@@ -79,17 +79,14 @@ class Position:
         self.last_updated = timestamp or datetime.now().isoformat()
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert position to dictionary."""
         return {
             "id": self.id,
             "ticker": self.ticker,
-            "platform": self.platform,
             "name": self.name,
             "quantity": self.quantity,
             "avg_price": self.avg_price,
+            "category": self.category,
             "currency": self.currency,
-            "type": self.type,
-            "is_emergency_fund": self.is_emergency_fund,
             "purchase_date": self.purchase_date,
             "last_price": self.last_price,
             "last_updated": self.last_updated,
@@ -97,15 +94,26 @@ class Position:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Position":
-        """Create position from dictionary."""
+        category = data.get("category")
+        if not category:
+            old_type = data.get("type", "stock")
+            old_platform = data.get("platform", "")
+            is_ef = data.get("is_emergency_fund", False)
+            if is_ef or old_type == "money_market":
+                category = "emergency_fund"
+            elif old_platform == "gotrade" or data.get("currency") == "USD":
+                category = "us_stocks"
+            elif old_type == "crypto":
+                category = "crypto"
+            else:
+                category = "id_stocks"
+
         pos = cls(
             ticker=data["ticker"],
-            platform=data["platform"],
             quantity=data["quantity"],
             avg_price=data["avg_price"],
+            category=category,
             currency=data.get("currency", "IDR"),
-            position_type=data.get("type", "stock"),
-            is_emergency_fund=data.get("is_emergency_fund", False),
             name=data.get("name"),
             purchase_date=data.get("purchase_date"),
             position_id=data.get("id"),
@@ -162,13 +170,12 @@ class PortfolioTracker:
         self.save()
         return position
 
-    def get_position(self, ticker: str, platform: str | None = None) -> Position | None:
-        """Find position by ticker and optionally platform."""
+    def get_position(self, ticker: str) -> Position | None:
+        """Find position by ticker."""
         ticker = ticker.upper()
         for pos in self.positions:
             if pos.ticker == ticker:
-                if platform is None or pos.platform == platform.lower():
-                    return pos
+                return pos
         return None
 
     def get_position_by_id(self, position_id: str) -> Position | None:
@@ -183,10 +190,9 @@ class PortfolioTracker:
         ticker: str,
         quantity: float | None = None,
         avg_price: float | None = None,
-        platform: str | None = None,
     ) -> Position | None:
         """Update existing position."""
-        pos = self.get_position(ticker, platform)
+        pos = self.get_position(ticker)
         if pos is None:
             return None
 
@@ -198,9 +204,9 @@ class PortfolioTracker:
         self.save()
         return pos
 
-    def remove_position(self, ticker: str, platform: str | None = None) -> bool:
+    def remove_position(self, ticker: str) -> bool:
         """Remove position from portfolio."""
-        pos = self.get_position(ticker, platform)
+        pos = self.get_position(ticker)
         if pos is None:
             return False
 
@@ -212,10 +218,9 @@ class PortfolioTracker:
         """Get all positions."""
         return self.positions.copy()
 
-    def get_positions_by_platform(self, platform: str) -> list[Position]:
-        """Get positions for specific platform."""
-        platform = platform.lower()
-        return [p for p in self.positions if p.platform == platform]
+    def get_positions_by_category(self, category: str) -> list[Position]:
+        category = category.lower()
+        return [p for p in self.positions if p.category == category]
 
     def get_emergency_fund_positions(self) -> list[Position]:
         """Get all emergency fund positions."""
@@ -248,8 +253,7 @@ class PortfolioTracker:
         self.metadata["usd_idr_rate"] = float(usd_idr_rate)
         self.save()
 
-    def get_allocation_by_type(self) -> dict[str, float]:
-        """Calculate allocation percentages by position type."""
+    def get_allocation_by_category(self) -> dict[str, float]:
         total = self.total_current_value()
         if total is None or total == 0:
             return {}
@@ -257,20 +261,6 @@ class PortfolioTracker:
         allocations: dict[str, float] = {}
         for pos in self.positions:
             if pos.current_value is not None:
-                ptype = pos.type
-                allocations[ptype] = allocations.get(ptype, 0) + pos.current_value
-
-        return {k: (v / total) * 100 for k, v in allocations.items()}
-
-    def get_allocation_by_platform(self) -> dict[str, float]:
-        """Calculate allocation percentages by platform."""
-        total = self.total_current_value()
-        if total is None or total == 0:
-            return {}
-
-        allocations: dict[str, float] = {}
-        for pos in self.positions:
-            if pos.current_value is not None:
-                allocations[pos.platform] = allocations.get(pos.platform, 0) + pos.current_value
+                allocations[pos.category] = allocations.get(pos.category, 0) + pos.current_value
 
         return {k: (v / total) * 100 for k, v in allocations.items()}

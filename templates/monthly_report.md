@@ -30,17 +30,9 @@
 | Category | Current | Target | Drift | Action |
 |----------|---------|--------|-------|--------|
 | Emergency Fund | __% | __% | __% | |
-| IDX Stocks | __% | __% | __% | |
+| ID Stocks | __% | __% | __% | |
 | US Stocks | __% | __% | __% | |
 | Crypto | __% | __% | __% | |
-
-### By Platform
-| Platform | Value | Allocation |
-|----------|-------|------------|
-| Bibit | Rp ________ | __% |
-| Stockbit | Rp ________ | __% |
-| Gotrade | Rp ________ | __% |
-| Tokocrypto | Rp ________ | __% |
 
 ## Phase Assessment
 
@@ -59,11 +51,12 @@
 
 **Monthly Savings**: Rp ________
 
-| Category | % | Amount | Platform | Action |
-|----------|---|--------|----------|--------|
-| | __% | Rp ________ | | |
-| | __% | Rp ________ | | |
-| | __% | Rp ________ | | |
+| Category | % | Amount | Action |
+|----------|---|--------|--------|
+| Emergency Fund | __% | Rp ________ | |
+| ID Stocks | __% | Rp ________ | |
+| US Stocks | __% | Rp ________ | |
+| Crypto | __% | Rp ________ | |
 
 ## IPS Compliance
 

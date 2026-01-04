@@ -40,7 +40,7 @@ def _update_live_prices(tracker: PortfolioTracker) -> dict[str, Any]:
 
     for pos in tracker.get_all_positions():
         try:
-            if pos.type == "crypto":
+            if pos.category == "crypto":
                 crypto_data = get_crypto_price(pos.ticker)
                 if "error" not in crypto_data:
                     price = crypto_data.get("price_idr") or crypto_data.get("price_usd", 0) * fx_data["rate"]
@@ -49,7 +49,7 @@ def _update_live_prices(tracker: PortfolioTracker) -> dict[str, Any]:
                 else:
                     results["failed"] += 1
                     results["errors"].append(f"{pos.ticker}: {crypto_data.get('error')}")
-            elif pos.type == "money_market":
+            elif pos.category == "emergency_fund":
                 pos.update_price(pos.avg_price * 1.001)
                 results["updated"] += 1
             else:
@@ -69,7 +69,6 @@ def _update_live_prices(tracker: PortfolioTracker) -> dict[str, Any]:
 
 
 def get_portfolio_snapshot(tracker: PortfolioTracker) -> dict[str, Any]:
-    """Get current portfolio snapshot with live values."""
     positions = tracker.get_all_positions()
 
     total_value = 0.0
@@ -80,7 +79,7 @@ def get_portfolio_snapshot(tracker: PortfolioTracker) -> dict[str, Any]:
         total_value += value
 
         position_data.append({
-            "platform": pos.platform.title(),
+            "category": pos.category.replace("_", " ").title(),
             "asset": pos.name or pos.ticker,
             "ticker": pos.ticker,
             "quantity": pos.quantity,
@@ -127,13 +126,12 @@ def get_allocation_status(
     ]
 
     if investment_value > 0:
-        by_type = tracker.get_allocation_by_type()
-        for asset_type, pct in by_type.items():
-            if asset_type != "money_market":
-                target_key = f"{asset_type}s" if not asset_type.endswith("s") else asset_type
-                target = target_allocations.get(target_key, 0)
+        by_category = tracker.get_allocation_by_category()
+        for category, pct in by_category.items():
+            if category != "emergency_fund":
+                target = target_allocations.get(category, 0)
                 allocations.append({
-                    "category": asset_type.replace("_", " ").title(),
+                    "category": category.replace("_", " ").title(),
                     "current": round(pct, 1),
                     "target": target,
                     "status": "ok" if abs(pct - target) <= 5 else "warning",
@@ -194,12 +192,12 @@ def format_daily_output(
         "💰 PORTFOLIO SNAPSHOT (Live Prices)",
     ]
 
-    headers = ["Platform", "Asset", "Qty", "Value (IDR)", "24h Δ"]
+    headers = ["Category", "Asset", "Qty", "Value (IDR)", "24h Δ"]
     rows = []
     for p in snapshot["positions"]:
         qty_str = f"{p['quantity']:.4f}" if p["quantity"] < 100 else f"{p['quantity']:,.0f}"
         rows.append([
-            p["platform"],
+            p["category"],
             p["asset"][:20],
             qty_str,
             format_currency(p["value"], p["currency"]),

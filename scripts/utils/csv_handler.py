@@ -17,15 +17,13 @@ __all__ = [
 
 
 CSV_HEADERS = [
-    "platform",
+    "category",
     "ticker",
     "name",
     "quantity",
     "avg_price",
     "currency",
     "purchase_date",
-    "type",
-    "is_emergency_fund",
 ]
 
 
@@ -36,48 +34,40 @@ def generate_csv_template(output_path: str | Path) -> Path:
 
     sample_rows = [
         [
-            "bibit",
+            "emergency_fund",
             "RDPU-SUCORINVEST",
             "Sucorinvest Money Market Fund",
             "12500000",
             "1.0",
             "IDR",
             "2025-01-01",
-            "money_market",
-            "true",
         ],
         [
-            "stockbit",
+            "id_stocks",
             "BBCA.JK",
             "Bank Central Asia",
             "10",
             "9500",
             "IDR",
             "2025-01-02",
-            "stock",
-            "false",
         ],
         [
-            "gotrade",
+            "us_stocks",
             "NVDA",
             "NVIDIA Corporation",
             "0.5",
             "140",
             "USD",
             "2025-01-02",
-            "stock",
-            "false",
         ],
         [
-            "tokocrypto",
+            "crypto",
             "BTC",
             "Bitcoin",
             "0.001",
             "1500000000",
             "IDR",
             "2025-01-02",
-            "crypto",
-            "false",
         ],
     ]
 
@@ -103,18 +93,29 @@ def import_portfolio_from_csv(csv_path: str | Path) -> dict[str, Any]:
         reader = csv.DictReader(f)
 
         for row in reader:
-            is_ef = row.get("is_emergency_fund", "false").lower() in ("true", "1", "yes")
+            category = row.get("category", "").strip().lower()
+            if not category:
+                platform = row.get("platform", "").strip().lower()
+                pos_type = row.get("type", "").strip().lower()
+                is_ef = row.get("is_emergency_fund", "false").lower() in ("true", "1", "yes")
+                
+                if is_ef or pos_type == "money_market":
+                    category = "emergency_fund"
+                elif platform == "gotrade" or row.get("currency", "").upper() == "USD":
+                    category = "us_stocks"
+                elif pos_type == "crypto":
+                    category = "crypto"
+                else:
+                    category = "id_stocks"
 
             position = {
                 "id": f"POS-{position_id:03d}",
-                "platform": row.get("platform", "").strip().lower(),
+                "category": category,
                 "ticker": row.get("ticker", "").strip().upper(),
                 "name": row.get("name", "").strip(),
                 "quantity": float(row.get("quantity", 0)),
                 "avg_price": float(row.get("avg_price", 0)),
                 "currency": row.get("currency", "IDR").strip().upper(),
-                "type": row.get("type", "stock").strip().lower(),
-                "is_emergency_fund": is_ef,
                 "purchase_date": row.get("purchase_date", datetime.now().strftime("%Y-%m-%d")),
                 "last_price": None,
                 "last_updated": None,
@@ -150,15 +151,13 @@ def export_portfolio_to_csv(portfolio: dict[str, Any], output_path: str | Path) 
 
         for pos in positions:
             row = [
-                pos.get("platform", ""),
+                pos.get("category", ""),
                 pos.get("ticker", ""),
                 pos.get("name", ""),
                 pos.get("quantity", 0),
                 pos.get("avg_price", 0),
                 pos.get("currency", "IDR"),
                 pos.get("purchase_date", ""),
-                pos.get("type", "stock"),
-                "true" if pos.get("is_emergency_fund") else "false",
             ]
             writer.writerow(row)
 

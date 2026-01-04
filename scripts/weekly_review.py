@@ -85,7 +85,7 @@ def get_trade_journal_summary(journal: JournalManager, days: int = 7) -> dict[st
 
 def get_rebalancing_check(tracker: PortfolioTracker, threshold: float = 5.0) -> dict[str, Any]:
     """Check if rebalancing is needed (5% threshold)."""
-    alloc_by_type = tracker.get_allocation_by_type()
+    alloc_by_category = tracker.get_allocation_by_category()
 
     from scripts.trackers import EmergencyFundTracker
     ef_tracker = EmergencyFundTracker()
@@ -94,19 +94,15 @@ def get_rebalancing_check(tracker: PortfolioTracker, threshold: float = 5.0) -> 
     drifts = []
     needs_rebalance = False
 
-    for asset_type, current_pct in alloc_by_type.items():
-        target_key = asset_type
-        if target_key not in target_alloc:
-            target_key = f"{asset_type}s"
-
-        target_pct = target_alloc.get(target_key, 0)
+    for category, current_pct in alloc_by_category.items():
+        target_pct = target_alloc.get(category, 0)
         drift = current_pct - target_pct
 
         if abs(drift) > threshold:
             needs_rebalance = True
 
         drifts.append({
-            "category": asset_type.replace("_", " ").title(),
+            "category": category.replace("_", " ").title(),
             "current": round(current_pct, 1),
             "target": target_pct,
             "drift": round(drift, 1),

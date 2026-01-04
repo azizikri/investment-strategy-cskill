@@ -26,8 +26,8 @@ from scripts.utils.formatters import (
 )
 from scripts.utils.validators import (
     ValidationError,
+    validate_category,
     validate_currency,
-    validate_platform,
     validate_price,
     validate_quantity,
     validate_ticker,
@@ -44,7 +44,7 @@ class TestPortfolioTracker:
 
             pos = Position(
                 ticker="BBCA.JK",
-                platform="stockbit",
+                category="id_stocks",
                 quantity=10,
                 avg_price=9500,
             )
@@ -60,7 +60,7 @@ class TestPortfolioTracker:
     def test_position_calculations(self):
         pos = Position(
             ticker="NVDA",
-            platform="gotrade",
+            category="us_stocks",
             quantity=0.5,
             avg_price=140,
             currency="USD",
@@ -88,7 +88,7 @@ class TestJournalManager:
                 action="BUY",
                 quantity=10,
                 price=9500,
-                platform="stockbit",
+                category="id_stocks",
                 thesis="Blue chip banking stock",
             )
             journal.add_trade(trade)
@@ -106,8 +106,8 @@ class TestJournalManager:
         try:
             journal = JournalManager(temp_path)
 
-            journal.add_trade(TradeEntry("BBCA.JK", "BUY", 10, 9500, "stockbit"))
-            journal.add_trade(TradeEntry("NVDA", "BUY", 0.5, 140, "gotrade", currency="USD"))
+            journal.add_trade(TradeEntry("BBCA.JK", "BUY", 10, 9500, "id_stocks"))
+            journal.add_trade(TradeEntry("NVDA", "BUY", 0.5, 140, "us_stocks", currency="USD"))
 
             stats = journal.calculate_stats()
             assert stats["total_trades"] == 2
@@ -172,15 +172,13 @@ class TestCSVHandler:
             portfolio = {
                 "positions": [
                     {
-                        "platform": "stockbit",
+                        "category": "id_stocks",
                         "ticker": "BBCA.JK",
                         "name": "BCA",
                         "quantity": 10,
                         "avg_price": 9500,
                         "currency": "IDR",
                         "purchase_date": "2025-01-01",
-                        "type": "stock",
-                        "is_emergency_fund": False,
                     }
                 ]
             }
@@ -249,9 +247,9 @@ class TestValidators:
         with pytest.raises(ValidationError):
             validate_price(0)
 
-    def test_validate_platform(self):
-        assert validate_platform("stockbit") == "stockbit"
-        assert validate_platform("BIBIT") == "bibit"
+    def test_validate_category(self):
+        assert validate_category("id_stocks") == "id_stocks"
+        assert validate_category("US_STOCKS") == "us_stocks"
 
         with pytest.raises(ValidationError):
-            validate_platform("unknown_platform")
+            validate_category("unknown_category")

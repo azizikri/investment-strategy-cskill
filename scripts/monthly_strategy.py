@@ -34,22 +34,17 @@ SKILL_ROOT = Path(__file__).parent.parent
 
 
 def get_monthly_performance(tracker: PortfolioTracker) -> dict[str, Any]:
-    """Calculate comprehensive monthly performance metrics."""
     positions = tracker.get_all_positions()
 
     total_current = 0.0
     total_cost = 0.0
-
-    by_platform: dict[str, float] = {}
-    by_type: dict[str, float] = {}
+    by_category: dict[str, float] = {}
 
     for pos in positions:
         current = pos.current_value or pos.cost_basis
         total_current += current
         total_cost += pos.cost_basis
-
-        by_platform[pos.platform] = by_platform.get(pos.platform, 0) + current
-        by_type[pos.type] = by_type.get(pos.type, 0) + current
+        by_category[pos.category] = by_category.get(pos.category, 0) + current
 
     total_pnl = total_current - total_cost
     total_pnl_pct = (total_pnl / total_cost * 100) if total_cost > 0 else 0
@@ -76,8 +71,7 @@ def get_monthly_performance(tracker: PortfolioTracker) -> dict[str, Any]:
         "sharpe_ratio": sharpe,
         "sortino_ratio": sortino,
         "max_drawdown": max_dd * 100,
-        "by_platform": by_platform,
-        "by_type": by_type,
+        "by_category": by_category,
         "position_count": len(positions),
     }
 
@@ -120,7 +114,6 @@ def get_payday_plan(
     ef_tracker: EmergencyFundTracker,
     monthly_savings: float = 5_000_000,
 ) -> dict[str, Any]:
-    """Generate payday execution plan."""
     phase = ef_tracker.current_phase
     target_alloc = ef_tracker.get_phase_allocation()
 
@@ -128,14 +121,14 @@ def get_payday_plan(
 
     for category, pct in target_alloc.items():
         amount = monthly_savings * (pct / 100)
-        platform = _get_platform_for_category(category)
+        existing_holdings = _get_holdings_for_category(tracker, category)
 
         allocations.append({
             "category": category.replace("_", " ").title(),
             "percentage": pct,
             "amount": amount,
-            "platform": platform,
-            "action": _get_action_for_category(category),
+            "holdings": existing_holdings,
+            "action": _get_action_for_category(category, existing_holdings),
         })
 
     return {
@@ -146,28 +139,25 @@ def get_payday_plan(
     }
 
 
-def _get_platform_for_category(category: str) -> str:
-    """Map category to recommended platform."""
-    mapping = {
-        "emergency_fund": "Bibit (RDPU)",
-        "idx_stocks": "Stockbit",
-        "us_stocks": "Gotrade",
-        "crypto": "Tokocrypto",
-        "investments": "Stockbit/Gotrade",
-    }
-    return mapping.get(category, "TBD")
+def _get_holdings_for_category(tracker: PortfolioTracker, category: str) -> list[str]:
+    positions = tracker.get_positions_by_category(category)
+    return [pos.ticker for pos in positions]
 
 
-def _get_action_for_category(category: str) -> str:
-    """Get action description for category."""
-    mapping = {
-        "emergency_fund": "Buy money market fund",
-        "idx_stocks": "Buy watchlist IDX stocks",
-        "us_stocks": "Buy US growth stocks",
-        "crypto": "DCA into BTC/ETH",
-        "investments": "Split between stocks/crypto",
+def _get_action_for_category(category: str, holdings: list[str]) -> str:
+    if holdings:
+        tickers = ", ".join(holdings[:3])
+        if len(holdings) > 3:
+            tickers += f" (+{len(holdings) - 3} more)"
+        return f"Buy: {tickers}"
+    
+    defaults = {
+        "emergency_fund": "Add money market fund",
+        "id_stocks": "Add IDX stocks to portfolio first",
+        "us_stocks": "Add US stocks to portfolio first",
+        "crypto": "Add crypto to portfolio first",
     }
-    return mapping.get(category, "Allocate as planned")
+    return defaults.get(category, "Define holdings first")
 
 
 def get_ips_compliance(tracker: PortfolioTracker) -> dict[str, Any]:
@@ -190,7 +180,7 @@ def get_ips_compliance(tracker: PortfolioTracker) -> dict[str, Any]:
                 "detail": f"{pos.ticker} at {pos_pct*100:.1f}%",
             })
 
-    crypto_value = sum((p.current_value or p.cost_basis) for p in positions if p.type == "crypto")
+    crypto_value = sum((p.current_value or p.cost_basis) for p in positions if p.category == "crypto")
     crypto_pct = crypto_value / total_value if total_value > 0 else 0
     crypto_status = "ok" if crypto_pct <= 0.20 else "violation"
     checks.append({
