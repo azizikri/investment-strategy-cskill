@@ -1,0 +1,11 @@
+{
+  "target_amount": 36000000,
+  "target_months": 6,
+  "monthly_expenses": 6000000,
+  "current_balance": 0,
+  "months_covered": 0,
+  "progress_percent": 0,
+  "phase": 1,
+  "last_updated": null,
+  "history": []
+}

@@ -1,0 +1,59 @@
+{
+  "name": "investment-strategy-cskill",
+  "version": "1.0.0",
+  "description": "Investment strategy execution assistant for Indonesian investors. Provides daily portfolio check-in with live prices from Yahoo Finance and CoinGecko, weekly performance review versus IHSG and S&P 500 benchmarks, and monthly strategy sessions with phase assessment. Implements Wall Street workflows including Kelly Criterion position sizing, Sharpe and Sortino ratio calculations, maximum drawdown monitoring, and threshold-based rebalancing. Tracks Emergency Fund progress for Phase 1 (Foundation Building) and Phase 2 (Wealth Accumulation) transitions. Manages structured JSON trade journal, generates payday execution plans for Bibit, Stockbit, Gotrade, and Tokocrypto platforms. References comprehensive investment framework documentation in ./plans/ for all calculations and recommendations.",
+  "author": "Zikri Munandar",
+  "license": "MIT",
+  "keywords": [
+    "investment",
+    "portfolio",
+    "trading",
+    "finance",
+    "indonesia",
+    "stocks",
+    "crypto",
+    "kelly-criterion",
+    "risk-management",
+    "emergency-fund"
+  ],
+  "category": "finance",
+  "skillFile": "SKILL.md",
+  "activation": {
+    "exactPhrases": [
+      "daily check",
+      "morning routine",
+      "portfolio check",
+      "weekly review",
+      "week review",
+      "monthly strategy",
+      "month review",
+      "phase check",
+      "rebalance portfolio",
+      "position size",
+      "kelly criterion",
+      "emergency fund status",
+      "investment tracker",
+      "payday execution",
+      "trade journal"
+    ],
+    "patterns": [
+      "(?i)(daily|morning|quick)\\s+(check|routine|review)",
+      "(?i)(weekly|week|end of week)\\s+(review|summary|check)",
+      "(?i)(monthly|month)\\s+(strategy|review|report|planning)",
+      "(?i)(calculate|compute|size)\\s+position",
+      "(?i)(what|which)\\s+phase\\s+(am|are|should)",
+      "(?i)(rebalance|allocation|drift)\\s+(check|portfolio|review)",
+      "(?i)(add|record|log)\\s+(trade|position|transaction)"
+    ]
+  },
+  "requirements": {
+    "python": ">=3.11",
+    "packageManager": "uv",
+    "dependencies": [
+      "yfinance>=0.2.0",
+      "requests>=2.31.0",
+      "pandas>=2.0.0",
+      "numpy>=1.24.0"
+    ]
+  }
+}

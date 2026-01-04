@@ -1,0 +1,5 @@
+platform,ticker,name,quantity,avg_price,currency,purchase_date,type,is_emergency_fund
+bibit,RDPU-SUCORINVEST,Sucorinvest Money Market Fund,12500000,1.0,IDR,2025-01-01,money_market,true
+stockbit,BBCA.JK,Bank Central Asia,10,9500,IDR,2025-01-02,stock,false
+gotrade,NVDA,NVIDIA Corporation,0.5,140,USD,2025-01-02,stock,false
+tokocrypto,BTC,Bitcoin,0.001,1500000000,IDR,2025-01-02,crypto,false

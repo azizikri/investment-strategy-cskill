@@ -1,0 +1,48 @@
+[project]
+name = "investment-strategy-cskill"
+version = "1.0.0"
+description = "Investment strategy execution assistant for daily/weekly/monthly workflows"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "yfinance>=0.2.0",
+    "requests>=2.31.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["scripts"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
