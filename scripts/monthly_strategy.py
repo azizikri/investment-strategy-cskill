@@ -252,17 +252,17 @@ def format_monthly_output(
         f"💵 PAYDAY EXECUTION PLAN ({format_currency(payday['monthly_savings'], 'IDR')} savings)",
     ])
 
-    headers = ["Category", "Allocation", "Amount", "Platform"]
+    headers = ["Category", "Allocation", "Amount", "Action"]
     rows = []
     for alloc in payday["allocations"]:
         rows.append([
             alloc["category"],
             f"{alloc['percentage']:.0f}%",
             format_currency(alloc["amount"], "IDR"),
-            alloc["platform"],
+            alloc["action"],
         ])
 
-    lines.append(format_table(headers, rows, [18, 12, 14, 18]))
+    lines.append(format_table(headers, rows, [18, 12, 14, 24]))
 
     lines.extend([
         "",

@@ -98,7 +98,7 @@ def format_status_badge(status: str) -> str:
 
 
 def format_portfolio_row(
-    platform: str,
+    category: str,
     asset: str,
     quantity: float | str,
     value: float,
@@ -107,7 +107,7 @@ def format_portfolio_row(
 ) -> dict[str, str]:
     """Format a single portfolio row for table display."""
     return {
-        "platform": platform,
+        "category": category,
         "asset": asset,
         "quantity": str(quantity) if isinstance(quantity, str) else format_number(quantity, 4),
         "value": format_currency(value, currency),
